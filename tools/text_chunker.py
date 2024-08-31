@@ -3,7 +3,12 @@ import numpy as np
 from typing import List, Dict, Union
 from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 from langchain_openai import OpenAIEmbeddings
+from pydantic import BaseModel
 
+class ChunkInfo(BaseModel):
+    content: str
+    num_sentences: int
+    chunk_length: int
 
 class TextChunker:
     def __init__(self, model: str = "text-embedding-3-large", context_window: int = 1, percentile_threshold: int = 80):
@@ -13,7 +18,6 @@ class TextChunker:
         self.sentences: List[Dict[str, Union[int, str, List[float]]]] = []
         self.embeddings = None
 
-        # Initialize the OpenAI embeddings model
         self.openai_embeddings = OpenAIEmbeddings(model=self.model)
 
     def split_text_into_sentences(self, text: str) -> None:
@@ -28,7 +32,6 @@ class TextChunker:
             start_idx = max(idx - self.context_window, 0)
             end_idx = min(idx + self.context_window + 1, num_sentences)
 
-            # Explicitly cast to str to ensure all elements are strings
             combined_sentence = ' '.join(str(sent['sentence']) for sent in self.sentences[start_idx:end_idx])
             sentence_dict['combined_sentence'] = combined_sentence
 
@@ -49,23 +52,28 @@ class TextChunker:
 
         return cosine_distances.tolist()
 
-    def to_chunks(self, distances: List[float]) -> List[Dict[str, Union[str, int]]]:
+    def to_chunks(self, distances: List[float]) -> List[ChunkInfo]:
         distance_threshold = np.percentile(distances, self.percentile_threshold)
         indices_above_threshold = np.flatnonzero(distances > distance_threshold).tolist()
 
         start_idx = 0
-        chunks_info: List[Dict[str, Union[str, int]]] = []
+        chunks_info: List[ChunkInfo] = []
 
         for end_idx in indices_above_threshold + [len(self.sentences)]:
             chunk_text = str(' '.join(sent['sentence'] for sent in self.sentences[start_idx:end_idx])) # type: ignore
             num_sentences = end_idx - start_idx
             chunk_length = len(chunk_text)
-            chunks_info.append({'content': chunk_text, 'num_sentences': num_sentences, 'chunk_length':chunk_length})
+            chunk = ChunkInfo(
+                content=chunk_text,
+                num_sentences=num_sentences,
+                chunk_length=chunk_length,
+            )
+            chunks_info.append(chunk)
             start_idx = end_idx
 
         return chunks_info
 
-    def process_text(self, text: str) -> List[Dict[str, Union[str, int]]]:
+    def process_text(self, text: str) -> List[ChunkInfo]:
         self.split_text_into_sentences(text)
         self.combine_sentences()
         self.compute_embeddings()

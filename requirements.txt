@@ -4,3 +4,5 @@ sentence-transformers
 openai
 chromadb
 langchain
+langchain_chroma
+gradio

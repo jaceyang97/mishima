@@ -1,0 +1,35 @@
+from langchain_chroma import Chroma
+import chromadb
+from langchain_openai import OpenAIEmbeddings
+from typing import List
+
+
+class VectorStoreManager:
+    def __init__(self, database_path: str, model: str = "text-embedding-3-large"):
+        self.database_path = database_path
+        self.model = model
+        self.vectorstore_client = chromadb.PersistentClient(path=database_path)
+        self.openai_embeddings = OpenAIEmbeddings(model=self.model)
+
+    def create_vectorstore(self, collection_name: str) -> Chroma:
+        """
+        Initializes a vector store collection.
+        """
+        return Chroma(
+            client=self.vectorstore_client,
+            collection_name=collection_name,
+            embedding_function=self.openai_embeddings,
+            persist_directory=self.database_path,
+        )
+
+    def delete_collection(self, collection_name: str) -> None:
+        """
+        Deletes a collection from the vector store.
+        """
+        self.vectorstore_client.delete_collection(collection_name)
+
+    def list_collections(self) -> List[str]:
+        """
+        Lists all available collections in the vector store.
+        """
+        return self.vectorstore_client.list_collections()

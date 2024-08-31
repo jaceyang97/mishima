@@ -5,3 +5,4 @@ __pycache__/
 *.pyd
 *.pkl
 *.ipynb_checkpoints
+/database
