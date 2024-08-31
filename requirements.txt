@@ -2,3 +2,5 @@ spacy
 python -m spacy download zh_core_web_sm
 sentence-transformers
 openai
+chromadb
+langchain

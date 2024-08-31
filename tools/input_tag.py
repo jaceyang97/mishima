@@ -1,11 +1,12 @@
 import os
 from openai import OpenAI
 from writings_styles.style import StyleAnalyzeResponse
+from typing import Any, Dict
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def analyze_writing_style(text: str) -> dict:
+def analyze_writing_style(text: str) -> Dict[str, Any]:
     response = client.beta.chat.completions.parse(
         model="gpt-4o-mini",
         messages=[
@@ -29,7 +30,7 @@ def analyze_writing_style(text: str) -> dict:
 
     style_response = response.choices[0].message
 
-    result = {"original_text": text, "tags": {}}
+    result: Dict[str, Any] = {"original_text": text, "tags": {}}
     if style_response.parsed:
         result["tags"] = style_response.parsed.model_dump()
     elif style_response.refusal:

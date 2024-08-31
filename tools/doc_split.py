@@ -1,42 +1,73 @@
 import spacy
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from typing import List, Dict, Union
+from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
+from langchain_openai import OpenAIEmbeddings
 
 
-def split_text_into_sentences_nlp(text: str) -> list:
-    nlp = spacy.load("zh_core_web_sm")
-    doc = nlp(text)
-    sentences = [sent.text.strip() for sent in doc.sents if sent.text.strip()]
-    return sentences
+class TextChunker:
+    def __init__(self, model: str = "text-embedding-3-large", context_window: int = 1, percentile_threshold: int = 80):
+        self.model = model
+        self.context_window = context_window
+        self.percentile_threshold = percentile_threshold
+        self.sentences: List[Dict[str, Union[int, str, List[float]]]] = []
+        self.embeddings = None
 
+        # Initialize the OpenAI embeddings model
+        self.openai_embeddings = OpenAIEmbeddings(model=self.model)
 
-def group_sentences_by_semantics(sentences: list, threshold=0.5, window_size=3) -> list:
-    model = SentenceTransformer("shibing624/text2vec-base-chinese")
-    embeddings = model.encode(sentences)
+    def split_text_into_sentences(self, text: str) -> None:
+        nlp = spacy.load("zh_core_web_sm")
+        doc = nlp(text)
+        self.sentences = [{'index': idx, 'sentence': sent.text.strip()} for idx, sent in enumerate(doc.sents) if sent.text.strip()]
 
-    # Initialize grouped sentences
-    grouped_sentences = []
-    current_group = [sentences[0]]
+    def combine_sentences(self) -> None:
+        num_sentences = len(self.sentences)
 
-    for i in range(1, len(sentences)):
-        similarities = []
-        for j in range(max(0, i - window_size), i):
-            sim = np.dot(embeddings[i], embeddings[j]) / (
-                np.linalg.norm(embeddings[i]) * np.linalg.norm(embeddings[j])
-            )
-            similarities.append(sim)
+        for idx, sentence_dict in enumerate(self.sentences):
+            start_idx = max(idx - self.context_window, 0)
+            end_idx = min(idx + self.context_window + 1, num_sentences)
 
-        avg_similarity = np.mean(similarities)
+            # Explicitly cast to str to ensure all elements are strings
+            combined_sentence = ' '.join(str(sent['sentence']) for sent in self.sentences[start_idx:end_idx])
+            sentence_dict['combined_sentence'] = combined_sentence
 
-        # If average similarity is above the threshold, add to the current group
-        if avg_similarity > threshold:
-            current_group.append(sentences[i])
-        else:
-            # Otherwise, start a new group
-            grouped_sentences.append(" ".join(current_group))
-            current_group = [sentences[i]]
+    def compute_embeddings(self) -> None:
+        combined_texts = [str(sent['combined_sentence']) for sent in self.sentences]
+        embeddings = self.openai_embeddings.embed_documents(combined_texts)
 
-    # Add the last group
-    grouped_sentences.append(" ".join(current_group))
+        for idx, sentence_dict in enumerate(self.sentences):
+            sentence_dict['combined_sentence_embedding'] = embeddings[idx]
 
-    return grouped_sentences
+    def calculate_cosine_distances(self) -> List[float]:
+        embeddings = np.array([sent['combined_sentence_embedding'] for sent in self.sentences])
+        cosine_similarities = cosine_similarity(embeddings[:-1], embeddings[1:]).diagonal() # type: ignore
+        cosine_distances = 1 - cosine_similarities
+
+        for idx, distance in enumerate(cosine_distances):
+            self.sentences[idx]['distance_to_next'] = distance
+
+        return cosine_distances.tolist()
+
+    def to_chunks(self, distances: List[float]) -> List[Dict[str, Union[str, int]]]:
+        distance_threshold = np.percentile(distances, self.percentile_threshold)
+        indices_above_threshold = np.flatnonzero(distances > distance_threshold).tolist()
+
+        start_idx = 0
+        chunks_info: List[Dict[str, Union[str, int]]] = []
+
+        for end_idx in indices_above_threshold + [len(self.sentences)]:
+            chunk_text = str(' '.join(sent['sentence'] for sent in self.sentences[start_idx:end_idx])) # type: ignore
+            num_sentences = end_idx - start_idx
+            chunk_length = len(chunk_text)
+            chunks_info.append({'content': chunk_text, 'num_sentences': num_sentences, 'chunk_length':chunk_length})
+            start_idx = end_idx
+
+        return chunks_info
+
+    def process_text(self, text: str) -> List[Dict[str, Union[str, int]]]:
+        self.split_text_into_sentences(text)
+        self.combine_sentences()
+        self.compute_embeddings()
+        distances = self.calculate_cosine_distances()
+        return self.to_chunks(distances)
