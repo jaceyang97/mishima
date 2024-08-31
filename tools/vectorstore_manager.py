@@ -12,9 +12,6 @@ class VectorStoreManager:
         self.openai_embeddings = OpenAIEmbeddings(model=self.model)
 
     def create_vectorstore(self, collection_name: str) -> Chroma:
-        """
-        Initializes a vector store collection.
-        """
         return Chroma(
             client=self.vectorstore_client,
             collection_name=collection_name,
@@ -23,13 +20,7 @@ class VectorStoreManager:
         )
 
     def delete_collection(self, collection_name: str) -> None:
-        """
-        Deletes a collection from the vector store.
-        """
         self.vectorstore_client.delete_collection(collection_name)
 
     def list_collections(self) -> List[str]:
-        """
-        Lists all available collections in the vector store.
-        """
         return self.vectorstore_client.list_collections()
