@@ -1,9 +1,11 @@
-import spacy
-import numpy as np
 from typing import List, Dict, Union
-from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
-from langchain_openai import OpenAIEmbeddings
+
+import numpy as np
+import spacy
 from pydantic import BaseModel
+from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
+
+from langchain_openai import OpenAIEmbeddings
 
 class ChunkInfo(BaseModel):
     content: str

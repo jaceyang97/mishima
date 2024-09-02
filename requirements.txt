@@ -6,3 +6,5 @@ chromadb
 langchain
 langchain_chroma
 gradio
+loguru
+yaml

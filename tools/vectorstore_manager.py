@@ -1,8 +1,9 @@
-from langchain_chroma import Chroma
-import chromadb
-from langchain_openai import OpenAIEmbeddings
 from typing import List
 
+import chromadb
+
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 class VectorStoreManager:
     def __init__(self, database_path: str, model: str = "text-embedding-3-large"):
