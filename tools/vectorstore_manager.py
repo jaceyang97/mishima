@@ -1,7 +1,7 @@
 from langchain_chroma import Chroma
 import chromadb
 from langchain_openai import OpenAIEmbeddings
-from typing import List
+from typing import List, Optional
 
 
 class VectorStoreManager:
@@ -12,6 +12,7 @@ class VectorStoreManager:
         self.openai_embeddings = OpenAIEmbeddings(model=self.model)
 
     def create_vectorstore(self, collection_name: str) -> Chroma:
+        """创建一个新的向量存储集合。"""
         return Chroma(
             client=self.vectorstore_client,
             collection_name=collection_name,
@@ -20,7 +21,16 @@ class VectorStoreManager:
         )
 
     def delete_collection(self, collection_name: str) -> None:
+        """删除指定的向量存储集合。"""
         self.vectorstore_client.delete_collection(collection_name)
 
     def list_collections(self) -> List[str]:
+        """列出所有的向量存储集合。"""
         return self.vectorstore_client.list_collections()
+
+    def get_collection_info(self, collection_name: str) -> Optional[dict]:
+        """获取指定集合的信息，如果集合不存在则返回None。"""
+        collections = self.vectorstore_client.list_collections()
+        if collection_name in collections:
+            return self.vectorstore_client.get_collection(collection_name)
+        return None

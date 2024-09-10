@@ -3,7 +3,7 @@ import os
 from typing import Any
 from pathlib import Path
 
-def cache_data(data: Any, file_path: Path) -> Any:
+def cache_data(data: Any, file_path: Path) -> None:
     """Saves data to a file using pickle."""
     with open(file_path, "wb") as f:
         pickle.dump(data, f)

@@ -1,8 +1,7 @@
 spacy
 python -m spacy download zh_core_web_sm
-sentence-transformers
-openai
-chromadb
-langchain
+scikit-learn
+langchain_openai
 langchain_chroma
+https://github.com/nmslib/hnswlib/issues/442
 gradio

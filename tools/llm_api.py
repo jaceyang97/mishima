@@ -7,9 +7,9 @@ client = OpenAI()
 
 def summarize(text: str) -> str:
     prompt = (
-        "You are an expert literary analyst and summarizer."
-        "Your task is to concisely summarize the following text."
-        "Focus on capturing the core subject matter, text structure, tone, perspective, and emotions."
+        "You are an expert literary analyst and summarizer. "
+        "Your task is to concisely summarize the following text. "
+        "Focus on capturing the core subject matter, text structure, tone, perspective, and emotions. "
         "Use the text's original language."
     )
 
@@ -22,25 +22,17 @@ def summarize(text: str) -> str:
             ],
         )
 
-        # Safely access the message content
-        message = completion.choices[0].message
-        return str(message.content)
+        return str(completion.choices[0].message.content)
 
     except Exception as e:
         print(f"Error during summarization: {e}")
         return ""
     
-def mimic_mishima_style(user_input: str, vectorstore: Chroma, k: int=5) -> str:
-    # Step 1: Summarize the input text
+def mimic_mishima_style(user_input: str, vectorstore: Chroma, k: int = 5) -> str:
     summarized_text = summarize(user_input)
-    
-    # Step 2: Query the vectorstore using the summarized text
     results: List[Document] = vectorstore.similarity_search(query=summarized_text, k=k)
-
-    # Step 3: Extract the most relevant original texts
     most_relevant_texts = [result.metadata['original_text'] for result in results]
 
-    # Step 4: Generate a new text imitating Mishima Yukio's style
     labeled_texts = "\n\n".join([f"文本 {idx + 1}:\n {text}" for idx, text in enumerate(most_relevant_texts)])
     
     imitation_prompt = (
