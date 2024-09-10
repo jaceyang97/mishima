@@ -1,0 +1,5 @@
+# models.yaml
+models:
+  summary: chatgpt-4o-latest
+  style: chatgpt-4o-latest
+  temperature: 0.2

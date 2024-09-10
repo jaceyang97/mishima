@@ -13,7 +13,7 @@ os.environ["OPENAI_API_KEY"] = str(os.getenv("OPENAI_API_KEY"))
 
 # 文件和缓存路径
 text_name = "the_sound_of_waves_chinese"
-file_path = Path(f"text/{text_name}.txt")
+file_path = Path(f"data/text/{text_name}.txt")
 cache_file_path = Path(f"cache/{text_name}_cache.pkl")
 
 # 读取文本

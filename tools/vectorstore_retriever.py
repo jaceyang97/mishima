@@ -1,10 +1,11 @@
-from langchain_core.documents import Document
-from tqdm import tqdm
 from typing import List
-from tools.text_chunker import ChunkInfo
-from tools import llm_api
+
+from tqdm import tqdm
+from langchain_core.documents import Document
 from langchain_chroma import Chroma
 
+from tools.text_chunker import ChunkInfo
+from tools import llm_api
 
 class VectorStoreRetriever:
     def __init__(self, vectorstore: Chroma):

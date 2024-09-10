@@ -1,7 +1,7 @@
-import pickle
 import os
-from typing import Any
+import pickle
 from pathlib import Path
+from typing import Any
 
 def cache_data(data: Any, file_path: Path) -> None:
     """Saves data to a file using pickle."""
@@ -10,7 +10,6 @@ def cache_data(data: Any, file_path: Path) -> None:
 
 
 def load_cached_data(file_path: Path) -> Any:
-    """Loads data from a pickle file if it exists."""
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
             return pickle.load(f)
