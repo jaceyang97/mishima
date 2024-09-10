@@ -18,10 +18,12 @@ client = OpenAI()
 def summarize(text: str) -> str:
     #TODO: refine language, probably change to chinese
     system_prompt = (
-        "You are an expert literary analyst and summarizer. "
-        "Your task is to concisely summarize the following text. "
-        "Focus on capturing the core subject matter, text structure, tone, perspective, and emotions. "
-        "Use the text's original language."
+        "你是一位擅长文学分析和总结的专家。"
+        "你的任务是简明扼要地总结以下文本。"
+        "请专注于捕捉核心主题、文本结构、语气、视角和情感。"
+        "使用文本的原始语言，并注意三岛由纪夫的写作风格："
+        "他的作品常常充满对美的执着，富有象征性，文字紧张而精确，"
+        "并且有时使用晦涩的词语。"
     )
 
     try:
