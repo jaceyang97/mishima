@@ -40,12 +40,12 @@ vs_manager = VectorStoreManager(database_path=database_path)
 vs = vs_manager.create_vectorstore(collection_name=collection_name)
 
 # 处理文本块并添加到向量存储
-vs_retriever = VectorStoreRetriever(vectorstore=vs)
-vs_retriever.process_chunks(chunks)
+# vs_retriever = VectorStoreRetriever(vectorstore=vs)
+# vs_retriever.process_chunks(chunks)
 
 # 生成模仿风格的响应
 def generate_response(user_input: str):
-    return llm_api.mimic_mishima_style(user_input=user_input, vectorstore=vs)
+    return llm_api.stylize(user_input=user_input, vectorstore=vs)
 
 # 调整图像大小
 original_image = Image.open("assets/mishima_1966.png")
